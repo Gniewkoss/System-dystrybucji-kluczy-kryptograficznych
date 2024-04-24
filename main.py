@@ -1,16 +1,30 @@
-# This is a sample Python script.
-
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+def create_key ():
+    pass
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+P = 23
+G = 9
+print(f"Public numbers: {P}, {G}")
 
+# Alice
+a = 4
+#Bob
+b= 3
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+print(f"Alice's private key: {a}, Bob's private key: {b}")
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+#Comute public values
+x= G**a % P
+y= G**b % P
+
+#Exchange public numbers
+
+#Alice receives public key y  and Bob receives public key x
+
+#compute symmetric keys
+
+ka = y**a % P
+kb = x**b % P
+
+print(f"Alice's symmetric key: {ka}, Bob's symmetric key: {kb}")
+
