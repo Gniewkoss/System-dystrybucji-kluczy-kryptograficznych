@@ -1,30 +1,18 @@
-def create_key ():
-    pass
+def check_prime(p):
+    for i in range(2,p):
+        if p%i == 0:
+            return False
+    return True
+
+#
+# def create_key (P,G,a,b):
+#     x= G**a % P
+#     y= G**b % P
+#
+#     ka = y**a % P
+#     kb = x**b % P
+#     return ka, kb
 
 
-P = 23
-G = 9
-print(f"Public numbers: {P}, {G}")
-
-# Alice
-a = 4
-#Bob
-b= 3
-
-print(f"Alice's private key: {a}, Bob's private key: {b}")
-
-#Comute public values
-x= G**a % P
-y= G**b % P
-
-#Exchange public numbers
-
-#Alice receives public key y  and Bob receives public key x
-
-#compute symmetric keys
-
-ka = y**a % P
-kb = x**b % P
-
-print(f"Alice's symmetric key: {ka}, Bob's symmetric key: {kb}")
+# print("Shared secret:" + str(create_key(2,1,3,5)))
 
