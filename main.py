@@ -1,30 +1,40 @@
-import random
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import dh
+from cryptography.hazmat.primitives import serialization
+import sqlite3
 
+# Tworzenie parametrów Diffie-Hellmana
+parameters = dh.generate_parameters(generator=2, key_size=2048, backend=default_backend())
 
-def diffie_hellman():
-    p = 23  # liczba pierwsza
-    g = 5  # liczba pierwotna
+# Generowanie kluczy
+private_key = parameters.generate_private_key()
+public_key = private_key.public_key()
 
-    #klucz prywatny
-    a = random.randint(1, p - 1)
-    b = random.randint(1, p - 1)
+# Serializacja kluczy
+private_key_bytes = private_key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption()
+)
 
-    #wartość publiczną
-    A = pow(g, a, p)
-    B = pow(g, b, p)
+public_key_bytes = public_key.public_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PublicFormat.SubjectPublicKeyInfo
+)# Połączenie z bazą danych
+conn = sqlite3.connect('klucze.db')
+cursor = conn.cursor()
 
-    shared_key_alice = pow(B, a, p)
-    shared_key_bob = pow(A, b, p)
+# Utworzenie tabeli kluczy, jeśli nie istnieje
+cursor.execute('''CREATE TABLE IF NOT EXISTS klucze
+                  (id INTEGER PRIMARY KEY, private_key BLOB, public_key BLOB)''')
 
-    print(f"Wartość publiczna Alice (A): {A}")
-    print(f"Wartość publiczna Bob (B): {B}")
-    print(f"Klucz wspólny obliczony przez Alice: {shared_key_alice}")
-    print(f"Klucz wspólny obliczony przez Bob: {shared_key_bob}")
+# Zapis kluczy do bazy danych
+cursor.execute("INSERT INTO klucze (private_key, public_key) VALUES (?, ?)", (private_key_bytes, public_key_bytes))
+conn.commit()
 
-    if shared_key_alice == shared_key_bob:
-        print("Alice i Bob mają ten sam klucz wspólny!")
-    else:
-        print("Coś poszło nie tak, klucze nie są identyczne.")
+print("Klucze zostały zapisane do bazy danych.")
 
+# Zamykanie połączenia
+conn.close()
 
-diffie_hellman()
+print("Klucze zostały wygenerowane i zapisane do plików.")
