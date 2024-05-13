@@ -1,40 +1,56 @@
+import sqlite3
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import dh
 from cryptography.hazmat.primitives import serialization
-import sqlite3
 
-# Tworzenie parametrów Diffie-Hellmana
-parameters = dh.generate_parameters(generator=2, key_size=2048, backend=default_backend())
+def generate_keys():
+    # Tworzenie parametrów Diffie-Hellmana
+    parameters = dh.generate_parameters(generator=2, key_size=2048, backend=default_backend())
 
-# Generowanie kluczy
-private_key = parameters.generate_private_key()
-public_key = private_key.public_key()
+    # Generowanie kluczy
+    private_key = parameters.generate_private_key()
+    public_key = private_key.public_key()
 
-# Serializacja kluczy
-private_key_bytes = private_key.private_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PrivateFormat.PKCS8,
-    encryption_algorithm=serialization.NoEncryption()
-)
+    # Serializacja kluczy
+    private_key_bytes = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
 
-public_key_bytes = public_key.public_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PublicFormat.SubjectPublicKeyInfo
-)# Połączenie z bazą danych
-conn = sqlite3.connect('klucze.db')
-cursor = conn.cursor()
+    public_key_bytes = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
 
-# Utworzenie tabeli kluczy, jeśli nie istnieje
-cursor.execute('''CREATE TABLE IF NOT EXISTS klucze
-                  (id INTEGER PRIMARY KEY, private_key BLOB, public_key BLOB)''')
+    return private_key_bytes, public_key_bytes
 
-# Zapis kluczy do bazy danych
-cursor.execute("INSERT INTO klucze (private_key, public_key) VALUES (?, ?)", (private_key_bytes, public_key_bytes))
-conn.commit()
+def save_keys_to_database(name, private_key_bytes, public_key_bytes):
+    conn = sqlite3.connect('klucze.db')
+    cursor = conn.cursor()
 
-print("Klucze zostały zapisane do bazy danych.")
+    # Utworzenie tabeli kluczy, jeśli nie istnieje
+    cursor.execute('''CREATE TABLE IF NOT EXISTS klucze
+                      (id INTEGER PRIMARY KEY, name TEXT, private_key BLOB, public_key BLOB)''')
 
-# Zamykanie połączenia
-conn.close()
+    # Zapis kluczy do bazy danych
+    cursor.execute("INSERT INTO klucze (name, private_key, public_key) VALUES (?, ?, ?)", (name, private_key_bytes, public_key_bytes))
+    conn.commit()
 
-print("Klucze zostały wygenerowane i zapisane do plików.")
+    print("Klucze zostały przypisane użytkownikowi", name)
+
+    # Zamykanie połączenia
+    conn.close()
+
+def main():
+    # Prośba użytkownika o imię
+    name = input("Podaj swoje imię: ")
+
+    # Generowanie kluczy
+    private_key_bytes, public_key_bytes = generate_keys()
+
+    # Zapis kluczy do bazy danych
+    save_keys_to_database(name, private_key_bytes, public_key_bytes)
+
+if __name__ == "__main__":
+    main()
